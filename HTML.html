@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT-Style UI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 20px;
+            background-color: #333;
+            border-bottom: 1px solid #444;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .header button {
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .header button:hover {
+            background-color: #555;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            transition: background-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.hidden {
+            display: none;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .sidebar .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .sidebar button {
+            background-color: #ddd;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sidebar button:hover {
+            background-color: #ccc;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        .sidebar li:hover {
+            background-color: #eee;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
+        }
+
+        .chat-display {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .chat-display p {
+            margin: 5px 0;
+        }
+
+        .chat-display .user {
+            text-align: right;
+            color: #add8e6;
+            margin-bottom: 5px;
+            align-self: flex-end;
+            background-color: #f8d7da;
+            color: black;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            text-align: right;
+            margin-left: auto;
+            font-size: 16px;
+        }
+
+        .chat-display .bot {
+            text-align: left;
+            color: #90ee90;
+            margin-bottom: 5px;
+            align-self: flex-start;
+            background-color: #2d6d2d;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            text-align: left;
+            margin-right: auto;
+            font-size: 16px;
+        }
+
+        .input-container textarea {
+            flex: 1;
+            border: 1px solid #ccc;
+            width: 98%;
+            border-radius: 20px;
+            padding: 8px;
+            resize: none;
+            outline: none;
+            font-size: 16px;
+            overflow: hidden;
+        }
+
+        .input-container button {
+            background-color: black;
+            color: white;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            position: absolute;
+            right: 10px;
+            bottom: 8px;
+        }
+
+        .input-container button:hover {
+            background-color: #555;
+        }
+
+        #chat_messages::-webkit-scrollbar {
+            display: none;
+        }
+
+        .floating-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .floating-modal.active {
+            display: block;
+        }
+
+        .floating-modal h3 {
+            margin: 0 0 10px;
+        }
+
+        .floating-modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .floating-modal button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .floating-modal button:hover {
+            background-color: #555;
+        }
+
+        .toggle-sidebar-button {
+            position: fixed;
+            top: 5px;
+            left: 10px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-sidebar-button:hover {
+            background-color: #555;
+        }
+        .toggle-theme-button {
+            position: fixed;
+            top: 5px;
+            right: 50px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-theme-button:hover {
+            background-color: #555;
+        }
+        h1{
+            left: 0;
+            line-height: 2px;
+            margin-top: 1px;
+            position: absolute;
+            text-align: center;
+            top: 5%;
+            width: 100%;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>I Am there here to Help you!</h1>
+    </div>
+    <button class="toggle-theme-button" id="toggleTheme">Toggle Theme</button>
+    <button class="toggle-sidebar-button" id="toggleSidebar">Toggle Sidebar</button>
+
+    <div class="main">
+        <div class="sidebar" id="sidebar">
+            <div class="buttons">
+                <button id="newChat">&#x2795;</button>
+                <button id="searchHistory">&#x1F50D;</button>
+                <button id="closeSidebar">&#x2715;</button>
+            </div>
+            <h2>History</h2>
+            <ul id="history">
+                <!-- Chat history items will be added dynamically -->
+            </ul>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-display" id="chatDisplay">
+                <!-- Chat messages will appear here -->
+            </div>
+
+            <div class="input-container">
+                <textarea id="userInput" placeholder="Message FD Analyzer"></textarea>
+                <button id="sendButton">&#x2191;</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-modal" id="modal">
+        <h3 id="modalTitle">Modal</h3>
+        <input type="text" id="modalInput" placeholder="Enter something...">
+        <button id="modalClose">Close</button>
+    </div>
+
+    <script>
+        const chatDisplay = document.getElementById('chatDisplay');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const history = document.getElementById('history');
+        const toggleTheme = document.getElementById('toggleTheme');
+        const newChatButton = document.getElementById('newChat');
+        const searchHistoryButton = document.getElementById('searchHistory');
+        const closeSidebarButton = document.getElementById('closeSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarButton = document.getElementById('toggleSidebar');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalInput = document.getElementById('modalInput');
+        const modalClose = document.getElementById('modalClose');
+
+        let isDarkMode = false;
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('p');
+            messageElement.textContent = message;
+            messageElement.classList.add(sender);
+            chatDisplay.prepend(messageElement);
+        }
+
+        function saveToHistory(message) {
+            const historyItem = document.createElement('li');
+            historyItem.textContent = message;
+            history.appendChild(historyItem);
+        }
+
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            appendMessage('user', userMessage);
+            saveToHistory(userMessage);
+
+            userInput.value = '';
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: userMessage }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch response from the server.');
+                }
+
+                const data = await response.json();
+                appendMessage('bot', data.answer || 'No response received.');
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('bot', 'Sorry, something went wrong.');
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        toggleTheme.addEventListener('click', function () {
+            isDarkMode = !isDarkMode;
+            document.body.style.backgroundColor = isDarkMode ? '#1e1e1e' : '#ffffff';
+            document.body.style.color = isDarkMode ? 'white' : 'black';
+
+            const sidebar = document.querySelector('.sidebar');
+            const chatContainer = document.querySelector('.chat-container');
+
+            sidebar.style.backgroundColor = isDarkMode ? '#222' : '#f4f4f4';
+            chatContainer.style.backgroundColor = isDarkMode ? '#1e1e1e' : '#f9f9f9';
+        });
+
+        newChatButton.addEventListener('click', () => {
+            modalTitle.textContent = 'New Chat';
+            modalInput.placeholder = 'Enter chat name...';
+            modal.classList.add('active');
+        });
+
+        searchHistoryButton.addEventListener('click', () => {
+            modalTitle.textContent = 'Search History';
+            modalInput.placeholder = 'Search term...';
+            modal.classList.add('active');
+        });
+
+        closeSidebarButton.addEventListener('click', () => {
+            sidebar.classList.add('hidden');
+        });
+
+        toggleSidebarButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        modalClose.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
